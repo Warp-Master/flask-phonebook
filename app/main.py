@@ -1,9 +1,7 @@
-import psycopg2 
+import psycopg2
 from flask import Flask
 import os
 
-
-print(os.getenv("POSTGRES_PASSWORD"))
 
 app = Flask(__name__)
 conn = psycopg2.connect(
@@ -12,6 +10,15 @@ conn = psycopg2.connect(
     user="postgres",
     password=os.getenv("POSTGRES_PASSWORD"),
 )
+
+
+def init_db():
+    with conn.cursor() as curs, open("init.sql") as file:
+        curs.execute(file.read())
+    conn.commit()
+
+
+init_db()
 
 
 @app.route("/")

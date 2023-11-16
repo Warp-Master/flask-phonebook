@@ -19,5 +19,7 @@ services:
       - ./app:/app/
     ports:
       - "80:5000"
+    depends_on:
+      - db
     environment:
       - POSTGRES_PASSWORD
