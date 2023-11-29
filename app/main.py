@@ -1,30 +1,43 @@
-import psycopg2
-from flask import Flask
 import os
+
+import psycopg2
+from faker import Faker
+from flask import Flask, render_template, request, redirect, url_for
+
+from db import init_db, add_person
+
+fake = Faker()
 
 
 app = Flask(__name__)
 conn = psycopg2.connect(
-    host="db",
+    host=os.getenv("POSTGRES_HOST"),
     database="postgres",
     user="postgres",
     password=os.getenv("POSTGRES_PASSWORD"),
 )
 
-
-def init_db():
-    with conn.cursor() as curs, open("init.sql") as file:
-        curs.execute(file.read())
-    conn.commit()
-
-
-init_db()
+init_db(conn)
 
 
 @app.route("/")
 def index():
-    return f"<p>Hello, World!</p><p>{conn}</p>"
+    return render_template('index.html', conn=conn)
+
+
+@app.route("/add/", methods=("GET", "POST"))
+def add():
+    if request.method == "POST" and add_person(conn, request.form.to_dict()):
+        return redirect(url_for('add'))
+    return render_template('add.html',
+                           firstnames=[request.form.get('firstname', fake.first_name())],
+                           lastnames=[request.form.get('lastname', fake.last_name())],
+                           surnames=[request.form.get('surname', fake.passport_owner()[1])],
+                           cities=[request.form.get('city', fake.city())],
+                           streets=[request.form.get('street', fake.street_name())],
+                           building=request.form.get('building', fake.building_number()),
+                           phone=request.form.get('phone', fake.phone_number()))
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=os.getenv("DEBUG", False))

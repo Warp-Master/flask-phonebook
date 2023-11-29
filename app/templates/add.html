@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Add New Person</title>
+</head>
+<body>
+<h1>Add a New User</h1>
+<form method="post">
+    <label for="firstname">Firstname</label>
+    <br>
+    <input type="text" name="firstname"
+           id="firstname" list="firstnames"
+           value="{{ firstnames.0|default('Ivan', true) }}">
+    <datalist id="firstnames">
+        {% for fname in firstnames %}
+        <option>{{ fname }}</option>
+        {% endfor %}
+    </datalist>
+    <br>
+
+    <label for="lastname">Lastname</label>
+    <br>
+    <input type="text" name="lastname"
+           id="lastname" list="lastnames"
+           value="{{ lastnames.0|default('Ivanov', true) }}">
+    <datalist id="lastnames">
+        {% for lname in lastnames %}
+        <option>{{ lname }}</option>
+        {% endfor %}
+    </datalist>
+    <br>
+    <label for="surname">Surname</label>
+    <br>
+    <input type="text" name="surname"
+           id="surname" list="surnames"
+           value="{{ surnames.0|default('Ivanovich', true) }}">
+    <datalist id="surnames">
+        {% for sname in surnames %}
+        <option>{{ sname }}</option>
+        {% endfor %}
+    </datalist>
+    <br>
+    <label for="city">City</label>
+    <br>
+    <input type="text" name="city"
+           id="city" list="cities"
+           value="{{ cities.0|default('Moscow', true) }}">
+    <datalist id="cities">
+        {% for city in cities %}
+        <option>{{ city }}</option>
+        {% endfor %}
+    </datalist>
+    <br>
+    <label for="street">Street</label>
+    <br>
+    <input type="text" name="street"
+           id="street" list="streets"
+           value="{{ streets.0|default('Tverskaya', true) }}">
+    <datalist id="streets">
+        {% for street in streets %}
+        <option>{{ street }}</option>
+        {% endfor %}
+    </datalist>
+    <br>
+    <label for="building">Building</label>
+    <br>
+    <input type="text" name="building"
+           id="building"
+           value="{{ building }}">
+    <br>
+    <label for="phone">Telephone</label>
+    <br>
+    <input type="text" name="phone"
+           id="phone"
+           value="{{ phone }}">
+    <br>
+    <button type="submit">Submit</button>
+</form>
+</body>
+</html>
