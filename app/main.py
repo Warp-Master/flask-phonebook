@@ -42,10 +42,9 @@ def add():
 def table():
     page = int(request.args.get('page', 0))
     search = request.args.get('search', '')
-    items, rowcount = get_table_items(conn, page, search)
+    items = get_table_items(conn, page, search)
     return render_template('table.html',
-                           page=page, search=search, max_page=math.ceil(rowcount / 50),
-                           items=items)
+                           page=page, search=search, items=items)
 
 
 @app.route("/remove", methods=("POST",))

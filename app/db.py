@@ -65,7 +65,7 @@ def get_table_items(conn, page: int, search: str = '', page_size: int = 50):
                        "building ~* %(search)s OR "
                        "phone ~* %(search)s "
                        "LIMIT %(page_size)s OFFSET %(offset)s", {"search": search, "page_size": page_size, "offset": page_size * page})
-        return cursor.fetchall(), cursor.rowcount
+        return cursor.fetchall()
 
 
 def replace_vals_by_ids(cursor, values):
