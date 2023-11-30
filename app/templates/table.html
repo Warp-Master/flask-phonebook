@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Table</title>
+    <style>table, th, td {
+        border: 1px solid black;
+    }</style>
+    <script>
+        const urlParams = new URLSearchParams(location.search);
+        const page = parseInt(urlParams.get('page')) || 0
+        function nextPage() {
+            urlParams.set('page', page + 1)
+            location.search = urlParams.toString();
+        }
+        function prevPage() {
+            urlParams.set('page', page - 1)
+            location.search = urlParams.toString();
+        }
+    </script>
+</head>
+<body>
+<form>
+    <input type="hidden" name="page" value="{{ page }}">
+    <label for="search">Search:</label>
+    <input id="search" name="search" value="{{ search }}">
+    <input type="submit" value="Go">
+</form>
+{% if page > 0 %}
+<button onclick="prevPage()">Prev</button>
+{% else %}
+<button onclick="prevPage()" disabled>Prev</button>
+{% endif %}
+{{ page + 1 }}
+<button onclick="nextPage()">Next</button>
+<table>
+    <thead>
+    <tr>
+        <th>Firstname</th>
+        <th>Lastname</th>
+        <th>Surname</th>
+        <th>City</th>
+        <th>Street</th>
+        <th>Building</th>
+        <th>Phone</th>
+        <th>Remove</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for item in items %}
+    <tr>
+        {% for col in item %}
+        <td>
+            {% if loop.last %}
+            <form action="{{ url_for('remove') }}" method="post">
+                <input type="hidden" name="next" value="{{ request.url }}">
+                <button name="id" value="{{ col }}">X</button>
+            </form>
+            {% else %}
+            {{ col }}
+            {% endif %}
+        </td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</body>
+</html>

@@ -1,13 +1,12 @@
 import os
 
 import psycopg2
-from faker import Faker
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect
 
-from db import init_db, add_person
-
-fake = Faker()
-
+from db import SelectDescriptorsEnum, fake
+from db import init_db, add_person, delete_person
+from db import iter_datalist, get_table_items
+import math
 
 app = Flask(__name__)
 conn = psycopg2.connect(
@@ -27,16 +26,37 @@ def index():
 
 @app.route("/add/", methods=("GET", "POST"))
 def add():
-    if request.method == "POST" and add_person(conn, request.form.to_dict()):
-        return redirect(url_for('add'))
-    return render_template('add.html',
-                           firstnames=[request.form.get('firstname', fake.first_name())],
-                           lastnames=[request.form.get('lastname', fake.last_name())],
-                           surnames=[request.form.get('surname', fake.passport_owner()[1])],
-                           cities=[request.form.get('city', fake.city())],
-                           streets=[request.form.get('street', fake.street_name())],
-                           building=request.form.get('building', fake.building_number()),
-                           phone=request.form.get('phone', fake.phone_number()))
+    form = request.form
+    if request.method == "POST" and add_person(conn, form.to_dict()):
+        form = dict()
+    context = {desc.name: [form.get(desc.value.key, desc.value.fake_factory()),
+                           *iter_datalist(conn, desc)] for desc in SelectDescriptorsEnum}
+    context |= {
+        "building": form.get('building', fake.building_number()),
+        "phone": form.get('phone', fake.phone_number())
+    }
+    return render_template('add.html', **context)
+
+
+@app.route("/table")
+def table():
+    page = int(request.args.get('page', 0))
+    search = request.args.get('search', '')
+    items, rowcount = get_table_items(conn, page, search)
+    return render_template('table.html',
+                           page=page, search=search, max_page=math.ceil(rowcount / 50),
+                           items=items)
+
+
+@app.route("/remove", methods=("POST",))
+def remove():
+    if (person_id := request.form.get('id')) is None:
+        return "id not specified", 400
+    if not delete_person(conn, int(person_id)):
+        return "wrong id", 400
+    if n := request.form.get('next'):
+        return redirect(n)
+    return "success", 200
 
 
 if __name__ == "__main__":

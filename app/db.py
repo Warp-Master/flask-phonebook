@@ -1,9 +1,14 @@
+from dataclasses import dataclass
 from enum import Enum
-from dataclasses import dataclass, asdict
-from typing import NamedTuple
-import psycopg2
-from psycopg2 import sql
 from operator import itemgetter
+from typing import Callable
+from typing import NamedTuple
+
+import psycopg2
+from faker import Faker
+from psycopg2 import sql
+
+fake = Faker()
 
 
 def init_db(conn):
@@ -16,6 +21,7 @@ def init_db(conn):
 class SelectDescriptor:
     key: str
     table: str
+    fake_factory: Callable
 
 
 class Person(NamedTuple):
@@ -29,17 +35,37 @@ class Person(NamedTuple):
 
 
 class SelectDescriptorsEnum(Enum):
-    firstnames = SelectDescriptor(key="firstname", table="Firstnames")
-    lastnames = SelectDescriptor(key="lastname", table="Lastnames")
-    surnames = SelectDescriptor(key="surname", table="Surnames")
-    cities = SelectDescriptor(key="city", table="Cities")
-    street = SelectDescriptor(key="street", table="Streets")
+    firstnames = SelectDescriptor(key="firstname", table="Firstnames", fake_factory=fake.first_name)
+    lastnames = SelectDescriptor(key="lastname", table="Lastnames", fake_factory=fake.last_name)
+    surnames = SelectDescriptor(key="surname", table="Surnames", fake_factory=lambda: fake.passport_owner()[1])
+    cities = SelectDescriptor(key="city", table="Cities", fake_factory=fake.city)
+    streets = SelectDescriptor(key="street", table="Streets", fake_factory=fake.street_name)
 
 
-def get_list(conn, t: SelectDescriptorsEnum):
+def iter_datalist(conn, desc: SelectDescriptorsEnum, size: int = 50):
     with conn.cursor() as cursor:
-        cursor.execute(sql.SQL(f"SELECT %(key)s FROM {t.value.table} ORDER BY %(key)s"), asdict(t.value))
-        return cursor.fetch_all()
+        cursor.execute(sql.SQL(f"SELECT {desc.value.key} FROM {desc.value.table} ORDER BY RANDOM() LIMIT %s"), (size,))
+        yield from map(itemgetter(0), cursor.fetchall())
+
+
+def get_table_items(conn, page: int, search: str = '', page_size: int = 50):
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT firstname, lastname, surname, Cities.city, Streets.street, building, phone, Persons.id "
+                       "FROM Persons "
+                       "JOIN Firstnames ON fname=Firstnames.id "
+                       "JOIN Lastnames ON lname=Lastnames.id "
+                       "JOIN Surnames ON sname=Surnames.id "
+                       "JOIN Cities ON Persons.city=Cities.id "
+                       "JOIN Streets ON Persons.street=Streets.id "
+                       "WHERE firstname ~* %(search)s OR "
+                       "lastname ~* %(search)s OR "
+                       "surname ~* %(search)s OR "
+                       "Cities.city ~* %(search)s OR "
+                       "Streets.street ~* %(search)s OR "
+                       "building ~* %(search)s OR "
+                       "phone ~* %(search)s "
+                       "LIMIT %(page_size)s OFFSET %(offset)s", {"search": search, "page_size": page_size, "offset": page_size * page})
+        return cursor.fetchall(), cursor.rowcount
 
 
 def replace_vals_by_ids(cursor, values):
@@ -67,6 +93,18 @@ def add_person(conn, values) -> bool:
                 "INSERT INTO Persons(fname, lname, sname, city, street, building, phone) VALUES (%s, %s, %s, %s, %s, %s, %s)",
                 itemgetter('firstname', 'lastname', 'surname', 'city', 'street', 'building', 'phone')(values)
             )
+            conn.commit()
+        except (BaseException, psycopg2.DatabaseError) as error:
+            print(error)
+            conn.rollback()
+            return False
+    return True
+
+
+def delete_person(conn, person_id) -> bool:
+    with conn.cursor() as cursor:
+        try:
+            cursor.execute("DELETE FROM Persons WHERE id=%s", (person_id,))
             conn.commit()
         except (BaseException, psycopg2.DatabaseError) as error:
             print(error)
