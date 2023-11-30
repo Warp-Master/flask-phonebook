@@ -36,11 +36,11 @@ CREATE TABLE IF NOT EXISTS Streets
 CREATE TABLE IF NOT EXISTS Persons
 (
     id       SERIAL PRIMARY KEY,
-    fname    INT REFERENCES Firstnames(id) ON DELETE CASCADE NOT NULL,
-    lname    INT REFERENCES Lastnames(id)  ON DELETE CASCADE NOT NULL,
-    sname    INT REFERENCES Surnames(id)   ON DELETE CASCADE NOT NULL,
-    city     INT REFERENCES Cities(id)     ON DELETE CASCADE NOT NUll,
-    street   INT REFERENCES Streets(id)    ON DELETE CASCADE NOT NULL,
+    fname    INT REFERENCES Firstnames(id) ON DELETE NO ACTION NOT NULL,
+    lname    INT REFERENCES Lastnames(id)  ON DELETE NO ACTION NOT NULL,
+    sname    INT REFERENCES Surnames(id)   ON DELETE NO ACTION NOT NULL,
+    city     INT REFERENCES Cities(id)     ON DELETE NO ACTION NOT NUll,
+    street   INT REFERENCES Streets(id)    ON DELETE NO ACTION NOT NULL,
     building VARCHAR(10)                   NOT NULL,
     phone    VARCHAR(30)                   NOT NULL UNIQUE
     CHECK(building <> ''),
