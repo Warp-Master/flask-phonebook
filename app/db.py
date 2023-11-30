@@ -57,13 +57,7 @@ def get_table_items(conn, page: int, search: str = '', page_size: int = 50):
                        "JOIN Surnames ON sname=Surnames.id "
                        "JOIN Cities ON Persons.city=Cities.id "
                        "JOIN Streets ON Persons.street=Streets.id "
-                       "WHERE firstname ~* %(search)s OR "
-                       "lastname ~* %(search)s OR "
-                       "surname ~* %(search)s OR "
-                       "Cities.city ~* %(search)s OR "
-                       "Streets.street ~* %(search)s OR "
-                       "building ~* %(search)s OR "
-                       "phone ~* %(search)s "
+                       "WHERE (firstname || ' ' || lastname || ' ' || surname || ' ' || Cities.city || ' ' || Streets.street || ' ' || building || ' ' || phone) ~* %(search)s "
                        "LIMIT %(page_size)s OFFSET %(offset)s", {"search": search, "page_size": page_size, "offset": page_size * page})
         return cursor.fetchall()
 
