@@ -23,4 +23,4 @@ services:
       - db
     environment:
       - POSTGRES_PASSWORD
-      - POSTGRES_HOST="db"
+      - POSTGRES_HOST=db
