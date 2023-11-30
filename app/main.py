@@ -6,7 +6,6 @@ from flask import Flask, render_template, request, redirect
 from db import SelectDescriptorsEnum, fake
 from db import init_db, add_person, delete_person
 from db import iter_datalist, get_table_items
-import math
 
 app = Flask(__name__)
 conn = psycopg2.connect(
